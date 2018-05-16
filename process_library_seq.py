@@ -12,14 +12,20 @@ from gzopen import gzopen
 
 # To know how many files we have to process we match each Sample of the first lane.
 # Samples are called: PromoterA12_S12_L001_R1_001.fastq.gz ... PromoterA12_S12_L003_R1_004.fastq.gz
-samples = [f for f in os.listdir('.') if re.search(r'Promoter[A-H][0-9][1-2]?_S[0-9][1-2]?_L001', f)] 
-
+fn_re = re.compile(r'Promoter[A-H][0-9][0-2]?_S[0-9][0-2]?_L001')
+samples = [f for f in os.listdir('.') if
+           fn_re.match(f)]
 # The reads from the qMiseq come separated in 4 lanes. Merge them.
 
 for sample in samples:
-    fn_items = sample.split('_') # Ex. PromoterA12_S12_L001_R1_001.fastq.gz
-    outfname =  fn_items[0] + '.fastq'
-    
+    # Ex. PromoterA12_S12_L001_R1_001.fastq.gz
+    fn_items = sample.split('_')
+    outfname = fn_items[0] + '.fastq'
+    if os.path.isfile(outfname):
+            sys.stdout.write("Sample: %s already processed, skiping.\n"
+                             % outfname.split('/')[-1])
+            continue
+
     lanes = ['L001','L002','L003','L004']
     for lane in lanes:
         if lane == 'L001':
